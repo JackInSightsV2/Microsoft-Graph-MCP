@@ -1,10 +1,22 @@
-# Azure CLI MCP Server
+# Microsoft Graph MCP Server
 
-An MCP (Model Context Protocol) server that provides AI assistants with secure access to Azure CLI commands. All you need is docker to run it locally. There are no cloud options at the moment. When you first run it allow it a little longer to download the docker image from github container registry. 
+An MCP (Model Context Protocol) server that provides AI assistants with secure access to Microsoft Graph API. Access user data, manage Azure AD resources, and perform administrative tasks through your AI assistant.
+
+## Authentication Modes
+
+### 🔍 Read-Only Mode (Device Code Flow)
+- **No client secret required**
+- Opens browser for user authentication
+- Limited to user-delegated permissions
+- Perfect for exploring data and read-only operations
+
+### ✏️ App Registration Mode (Client Secret Flow)
+- **Requires Azure AD app registration with client secret**
+- Full administrative capabilities
+- Application permissions for automated operations
+- Can be scoped to specific permissions you need
 
 ## Quick Setup
-
-Add this to your MCP configuration file:
 
 ### Claude Desktop
 
@@ -13,50 +25,42 @@ Add to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "azure-cli": {
+    "graph-mcp": {
       "command": "docker",
       "args": [
         "run",
-        "-i",
         "--rm",
-        "ghcr.io/jackinsightsv2/azure-cli-mcp:latest"
+        "-i",
+        "--init",
+        "-e",
+        "LOG_LEVEL=INFO",
+        "-v",
+        "graph-mcp-server:/tmp",
+        "graph-mcp-server"
       ]
     }
   }
 }
 ```
 
-### Cursor
+### Warp AI
 
-Add to your `~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "azure-cli": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "ghcr.io/jackinsightsv2/azure-cli-mcp:latest"
-      ]
-    }
-  }
-}
-```
-
-### Other MCP Clients (Like Warp AI)
+Add to your MCP configuration:
 
 ```json
 {
-  "azure-cli": {
+  "graph-mcp": {
     "command": "docker",
     "args": [
       "run",
-      "-i",
       "--rm",
-      "ghcr.io/jackinsightsv2/azure-cli-mcp:latest"
+      "-i",
+      "--init",
+      "-e",
+      "LOG_LEVEL=INFO",
+      "-v",
+      "graph-mcp-server:/tmp",
+      "graph-mcp-server"
     ],
     "env": {},
     "working_directory": null,
@@ -65,72 +69,171 @@ Add to your `~/.cursor/mcp.json`:
 }
 ```
 
-## What It Does
+## Configuration Options
 
-- **Execute Azure CLI commands** - Run any `az` command through your AI assistant
-- **Secure authentication** - Uses device code flow (opens browser for login)
-- **Resource management** - Create, update, delete, and monitor Azure resources
-- **Cost optimization** - Analyze spending and optimize resources
-- **Security auditing** - Check configurations and fix security issues
+### Environment Variables
 
-## Authentication
+Set these in your MCP configuration or Docker environment:
 
-The server will automatically prompt for Azure authentication when needed. It opens your browser for secure device code flow authentication - no credentials are stored.
+- `AZURE_CLIENT_ID`: Your Azure AD application client ID
+- `AZURE_TENANT_ID`: Your Azure AD tenant ID  
+- `AZURE_CLIENT_SECRET`: Your client secret (optional, for app permissions)
 
-## Checking Logs and Status
+### With Client Secret in MCP Config
 
-### View container logs:
-```bash
-# See running containers
-docker ps
-
-# View logs for the MCP server
-docker logs <container_id>
-
-# Follow logs in real-time
-docker logs -f <container_id>
-```
-
-### Check server status:
-```bash
-# Test if server is responding
-docker run --rm ghcr.io/jackinsightsv2/azure-cli-mcp:latest az account show
-```
-
-### Debug mode:
 ```json
 {
   "mcpServers": {
-    "azure-cli": {
+    "graph-mcp": {
       "command": "docker",
       "args": [
         "run",
-        "-i",
         "--rm",
-        "-e", "LOG_LEVEL=DEBUG",
-        "ghcr.io/jackinsightsv2/azure-cli-mcp:latest"
+        "-i",
+        "--init",
+        "-e",
+        "AZURE_CLIENT_ID=your-client-id",
+        "-e",
+        "AZURE_TENANT_ID=your-tenant-id",
+        "-e",
+        "AZURE_CLIENT_SECRET=your-client-secret",
+        "-v",
+        "graph-mcp-server:/tmp",
+        "graph-mcp-server"
       ]
     }
   }
 }
 ```
 
-## Common Issues
+### Without Client Secret (Read-Only Mode)
 
-| Problem | Solution |
-|---------|----------|
-| Docker not found | Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) |
-| Authentication failed | Run `az login` manually or follow device code prompts |
-| Permission denied | Check your Azure account has proper permissions |
-| Container won't start | Check Docker is running: `docker ps` |
+```json
+{
+  "mcpServers": {
+    "graph-mcp": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--init",
+        "-e",
+        "AZURE_CLIENT_ID=your-client-id",
+        "-e",
+        "AZURE_TENANT_ID=your-tenant-id",
+        "-v",
+        "graph-mcp-server:/tmp",
+        "graph-mcp-server"
+      ]
+    }
+  }
+}
+```
+
+## Azure AD App Registration Setup
+
+### Required App Registration Permissions
+
+For **full write access**, configure these application permissions in your Azure AD app registration:
+
+#### User Management
+- `User.ReadWrite.All` - Read and write all users' full profiles
+- `User.ManageIdentities.All` - Manage user identities
+- `UserAuthenticationMethod.ReadWrite.All` - Read and write authentication methods
+
+#### Group Management  
+- `Group.ReadWrite.All` - Read and write all groups
+- `GroupMember.ReadWrite.All` - Read and write group memberships
+
+#### Device Management
+- `Device.ReadWrite.All` - Read and write devices
+- `DeviceManagementConfiguration.ReadWrite.All` - Read and write device configuration
+- `DeviceManagementManagedDevices.ReadWrite.All` - Read and write managed devices
+
+#### Application Management
+- `Application.ReadWrite.All` - Read and write applications
+- `AppRoleAssignment.ReadWrite.All` - Read and write app role assignments
+
+#### Directory Management
+- `Directory.ReadWrite.All` - Read and write directory data
+- `RoleManagement.ReadWrite.Directory` - Read and write directory roles
+
+#### Security & Compliance
+- `SecurityEvents.ReadWrite.All` - Read and write security events
+- `IdentityRiskEvent.ReadWrite.All` - Read and write identity risk events
+
+#### Mail & Calendar (if needed)
+- `Mail.ReadWrite` - Read and write mail
+- `Calendars.ReadWrite` - Read and write calendars
+
+#### Files & Sites (if needed)
+- `Files.ReadWrite.All` - Read and write files
+- `Sites.ReadWrite.All` - Read and write sites
+
+### Scoped Permissions
+
+You can scope your app registration to only the permissions you need. For example, for user management only:
+
+- `User.ReadWrite.All`
+- `Group.ReadWrite.All` 
+- `Directory.Read.All`
+
+## What It Does
+
+- **User Management** - Create, update, delete, and manage Azure AD users
+- **Group Management** - Manage groups and group memberships  
+- **Device Management** - Monitor and manage devices
+- **Application Management** - Manage Azure AD applications and service principals
+- **Security Operations** - Access security events and risk data
+- **Directory Operations** - Read and write directory information
+- **Mail & Calendar** - Access user mail and calendar data (with permissions)
+
+## Usage Examples
+
+### Get Current User
+```
+graph_command(command="me")
+```
+
+### List All Users
+```
+graph_command(command="users")
+```
+
+### Create a User (requires client secret)
+```
+graph_command(
+    command="users", 
+    method="POST",
+    data={
+        "accountEnabled": true,
+        "displayName": "John Doe",
+        "mailNickname": "johndoe",
+        "userPrincipalName": "johndoe@yourdomain.com",
+        "passwordProfile": {
+            "forceChangePasswordNextSignIn": true,
+            "password": "TempPassword123!"
+        }
+    },
+    client_secret="your-client-secret"
+)
+```
+
+### Update User Properties
+```
+graph_command(
+    command="users/user@domain.com",
+    method="PATCH", 
+    data={"jobTitle": "Senior Developer"}
+)
+```
 
 ## Local Development
 
-Only needed if you want to modify the server:
-
 ```bash
-git clone https://github.com/JackInSightsV2/azure-cli-mcp.git
-cd azure-cli-mcp/azure-cli-mcp-python
+git clone https://github.com/JackInSightsV2/Microsoft-Graph-MCP.git
+cd Microsoft-Graph-MCP/graph-mcp-python
 docker-compose up --build
 ```
 
