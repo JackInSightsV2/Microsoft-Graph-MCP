@@ -19,6 +19,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
         
       - name: Build Docker image
-        working-directory: ./azure-cli-mcp-python
+        working-directory: ./graph-mcp-python
         run: |
-          docker build -t azure-cli-mcp:latest .
+          docker build -t graph-mcp-server:latest .
