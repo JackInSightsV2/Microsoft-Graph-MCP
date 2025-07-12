@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  graph-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: graph-mcp-server:latest
+    container_name: graph-mcp-server
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - MCP_SERVER_NAME=${MCP_SERVER_NAME:-graph-mcp}
+      - MCP_SERVER_VERSION=${MCP_SERVER_VERSION:-1.11.0}
+    stdin_open: true
+    tty: true
+    volumes:
+      # Mount for token persistence - Azure Identity cache
+      - graph-mcp-tokens:/tmp/.azure
+      # Mount for development (optional)
+      - ./graph_mcp:/app/graph_mcp
+      # Mount for logs (optional)
+      - ./logs:/app/logs
+    networks:
+      - mcp-network
+    restart: unless-stopped
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import graph_mcp; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  graph-mcp-tokens:
+    driver: local
+  logs:
+    driver: local 
