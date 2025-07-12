@@ -106,7 +106,7 @@ Set these in your MCP configuration or Docker environment:
 }
 ```
 
-### Without Client Secret (Read-Only Mode)
+### Without Client Secret (Write Mode - but will ask for secret every time you launch the MCP server)
 
 ```json
 {
@@ -189,53 +189,6 @@ You can scope your app registration to only the permissions you need. For exampl
 - **Directory Operations** - Read and write directory information
 - **Mail & Calendar** - Access user mail and calendar data (with permissions)
 
-## Usage Examples
-
-### Get Current User
-```
-graph_command(command="me")
-```
-
-### List All Users
-```
-graph_command(command="users")
-```
-
-### Create a User (requires client secret)
-```
-graph_command(
-    command="users", 
-    method="POST",
-    data={
-        "accountEnabled": true,
-        "displayName": "John Doe",
-        "mailNickname": "johndoe",
-        "userPrincipalName": "johndoe@yourdomain.com",
-        "passwordProfile": {
-            "forceChangePasswordNextSignIn": true,
-            "password": "TempPassword123!"
-        }
-    },
-    client_secret="your-client-secret"
-)
-```
-
-### Update User Properties
-```
-graph_command(
-    command="users/user@domain.com",
-    method="PATCH", 
-    data={"jobTitle": "Senior Developer"}
-)
-```
-
-## Local Development
-
-```bash
-git clone https://github.com/JackInSightsV2/Microsoft-Graph-MCP.git
-cd Microsoft-Graph-MCP/graph-mcp-python
-docker-compose up --build
-```
 
 ## License
 
