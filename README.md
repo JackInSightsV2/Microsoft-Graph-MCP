@@ -36,7 +36,7 @@ Add to your `claude_desktop_config.json`:
         "LOG_LEVEL=INFO",
         "-v",
         "graph-mcp-server:/tmp",
-        "graph-mcp-server"
+        "ghcr.io/jackinsightsv2/microsoft-graph-mcp:latest"
       ]
     }
   }
@@ -60,7 +60,7 @@ Add to your MCP configuration:
       "LOG_LEVEL=INFO",
       "-v",
       "graph-mcp-server:/tmp",
-      "graph-mcp-server"
+      "ghcr.io/jackinsightsv2/microsoft-graph-mcp:latest"
     ],
     "env": {},
     "working_directory": null,
@@ -99,7 +99,7 @@ Set these in your MCP configuration or Docker environment:
         "AZURE_CLIENT_SECRET=your-client-secret",
         "-v",
         "graph-mcp-server:/tmp",
-        "graph-mcp-server"
+        "ghcr.io/jackinsightsv2/microsoft-graph-mcp:latest"
       ]
     }
   }
@@ -124,7 +124,7 @@ Set these in your MCP configuration or Docker environment:
         "AZURE_TENANT_ID=your-tenant-id",
         "-v",
         "graph-mcp-server:/tmp",
-        "graph-mcp-server"
+        "ghcr.io/jackinsightsv2/microsoft-graph-mcp:latest"
       ]
     }
   }
